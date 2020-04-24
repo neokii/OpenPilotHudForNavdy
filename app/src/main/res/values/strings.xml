@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">OpenPilot Navdy Gateway</string>
+
+    <string name="app_close">"Close"</string>
+    <string name="app_retry">"Retry"</string>
+    <string name="app_remove">"Remove"</string>
+
+    <string name="scanning_bluetooth">"Scanning"</string>
+    <string name="not_found_bluetooth">"Not found"</string>
+    <string name="scan_complete_bluetooth">"Scan completed"</string>
+
+    <string name="bt_not_enabled_leaving">"Bluetooth is not available."</string>
+
+</resources>
