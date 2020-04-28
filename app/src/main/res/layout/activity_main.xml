@@ -49,20 +49,42 @@
                 android:text="Pair"/>
 
             <Button
-                android:id="@+id/btnSettings"
+                android:id="@+id/btnBluetoothSettings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="Bluetooth Settings"
-                android:visibility="gone"/>
+                android:text="Bluetooth Settings"/>
 
         </LinearLayout>
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="15dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/settings_speed_ratio"
+            android:layout_marginBottom="5dp"/>
+
+        <com.hariofspades.incdeclibrary.IncDecCircular
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:textSize="25"
+            android:id="@+id/incdec"
+            app:textColor="#333"
+            app:leftButtonColorTint="@color/colorPrimaryDark"
+            app:rightButtonColorTinit="@color/colorPrimary"
+            app:leftDrawableTint="@color/white"
+            app:rightDrawableTint="@color/white"
+            app:leftDrawable="@drawable/ic_remove_black_24dp"
+            app:rightDrawable="@drawable/ic_add_black_24dp"/>
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:minHeight="50dp">
+            android:layout_margin="10dp">
 
             <TextView
                 android:id="@+id/textTimer"

@@ -3,6 +3,8 @@ package com.neokii.openpilot;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.os.Build;
@@ -11,9 +13,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.hariofspades.incdeclibrary.IncDecCircular;
 import com.neokii.openpilot.bluetooth.BaseBluetooth;
 import com.neokii.openpilot.bluetooth.BaseBluetoothConnectDialog;
 import com.neokii.openpilot.bluetooth.nMirrorPairBTDialog;
@@ -21,6 +25,7 @@ import com.neokii.openpilot.bluetooth.NavdyBT;
 import com.neokii.openpilot.poller.Poller;
 import com.neokii.openpilot.util.SettingUtil;
 
+import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -72,6 +77,13 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
 
             cancelTimer();
 
+            try
+            {
+                removeBond(BluetoothAdapter.getDefaultAdapter().getRemoteDevice(SettingUtil.getString(this, "bt_address_nmirror_pair_device")));
+            }
+            catch(Exception e){}
+
+
             nMirrorPairBTDialog dialog = new nMirrorPairBTDialog(MainActivity.this, new BaseBluetoothConnectDialog.OnChangedListener()
             {
                 @Override
@@ -97,10 +109,32 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
 
         });
 
-        findViewById(R.id.btnSettings).setOnClickListener((View v)->{
+        findViewById(R.id.btnBluetoothSettings).setOnClickListener((View v)->{
 
+            cancelTimer();
             Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+            intent.putExtra("extra_prefs_show_button_bar", true);
             startActivity(intent);
+        });
+
+        float speed_ratio = SettingUtil.getFloat(MainApp.getAppContext(), "speed_ratio", 1.0f);
+
+        IncDecCircular incdec = (IncDecCircular) findViewById(R.id.incdec);
+        incdec.setConfiguration(LinearLayout.HORIZONTAL, IncDecCircular.TYPE_FLOAT,
+                IncDecCircular.DECREMENT, IncDecCircular.INCREMENT);
+
+        incdec.setupValues(0.8f,1.3f, 0.05f, speed_ratio);
+        incdec.setprecision("%.2f");
+        incdec.enableLongPress(false,false,500);
+
+        incdec.setOnValueChangeListener(new IncDecCircular.OnValueChangeListener()
+        {
+            @Override
+            public void onValueChange(IncDecCircular view, float oldValue, float newValue)
+            {
+                cancelTimer();
+                SettingUtil.setFloat(MainApp.getAppContext(), "speed_ratio", newValue);
+            }
         });
 
         findViewById(R.id.btnFinish).setOnClickListener((View v) -> {
@@ -109,20 +143,15 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
 
         NavdyBT.instance().addStateChangedListener(this);
 
-        poller = new Poller(new Poller.OnReceiveListener()
+        /*poller = new Poller(new Poller.OnReceiveListener()
         {
             @Override
             public void onReceived(String endpoint, Log.Event.Reader reader)
             {
-                Log.ControlsState.Reader r = reader.getControlsState();
-                if(r.getEnabled() && !isFinishing())
-                {
-                    finish();
-                }
             }
         });
 
-        poller.start("controlsState");
+        poller.start("controlsState");*/
 
         timer = new Timer();
         timer.schedule(new TimerTask()
@@ -147,6 +176,16 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
         }, 1000, 1000);
     }
 
+    private void removeBond(BluetoothDevice device)
+    {
+        try
+        {
+            Method m = device.getClass().getMethod("removeBond", (Class[]) null);
+            m.invoke(device, (Object[]) null);
+        }
+        catch (Exception e){}
+    }
+
     private void updateTimerView()
     {
         textTimer.setText(String.format(Locale.getDefault(), "Automatically close after %d seconds.", timerCount));
@@ -157,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
         if(timer != null)
         {
             timer.cancel();
+            timer = null;
             textTimer.setVisibility(View.INVISIBLE);
         }
     }
@@ -176,12 +216,20 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
 
         if(timer != null)
             timer.cancel();
+
+        try
+        {
+            IncDecCircular incdec = (IncDecCircular) findViewById(R.id.incdec);
+            SettingUtil.setFloat(MainApp.getAppContext(), "speed_ratio", Float.valueOf(incdec.getValue()));
+        }
+        catch(Exception e){}
+
     }
 
     @Override
     public void onStateChanged(int state)
     {
-        if(state == NavdyBT.STATE_CONNECTED)
+        if(state == NavdyBT.STATE_CONNECTED && timer != null)
             finish();
     }
 }

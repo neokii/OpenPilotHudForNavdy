@@ -1,13 +1,17 @@
 package com.neokii.openpilot;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.neokii.openpilot.util.SettingUtil;
+
+import ai.comma.openpilot.cereal.Log;
 
 public class CarItem
 {
+    private float speed_ratio = 1.0f;
+
     private Gson gson = new Gson();
 
     public int battery_temp = -1;
@@ -30,6 +34,11 @@ public class CarItem
     // radarState
     public boolean lead1_enabled;
     public int lead1_d_rel = -1;
+
+    public boolean break_pressed;
+
+    public int path_lprob = -1;
+    public int path_rprob = -1;
 
     public CarItem()
     {
@@ -55,6 +64,52 @@ public class CarItem
 
         lead1_enabled = false;
         lead1_d_rel = -1;
+
+        break_pressed = false;
+
+        speed_ratio = SettingUtil.getFloat(MainApp.getAppContext(), "speed_ratio", 1.0f);
+
+        if(speed_ratio < 0.5f || speed_ratio > 1.5f)
+            speed_ratio = 1.0f;
+    }
+
+    public String getJson(Log.PathPlan.Reader r)
+    {
+        JsonObject object = new JsonObject();
+
+        if(this.path_lprob != (int)(r.getLProb()*100))
+        {
+            this.path_lprob = (int)(r.getLProb()*100);
+            object.addProperty("path_lprob", this.path_lprob);
+        }
+
+        if(this.path_rprob != (int)(r.getRProb()*100))
+        {
+            this.path_rprob = (int)(r.getRProb()*100);
+            object.addProperty("path_rprob", this.path_rprob);
+        }
+
+        if(object.size() > 0)
+            return gson.toJson(object);
+
+        return null;
+    }
+
+    // Car.CarState.Reader
+    public String getJson(ai.comma.openpilot.cereal.Car.CarState.Reader r)
+    {
+        JsonObject object = new JsonObject();
+
+        if(this.break_pressed != r.getBrakeLights())
+        {
+            this.break_pressed = r.getBrakeLights();
+            object.addProperty("break_pressed", this.break_pressed);
+        }
+
+        if(object.size() > 0)
+            return gson.toJson(object);
+
+        return null;
     }
 
     public String getJson(ai.comma.openpilot.cereal.Log.ThermalData.Reader r)
@@ -87,14 +142,14 @@ public class CarItem
 
         boolean active = r.getActive();
         boolean enabled = r.getEnabled();
-        int vego = (int)(r.getVEgo() * 3.6 + 0.5);
-        int vcruise = (int)(r.getVCruise() + 0.5);
+        int vego = (int)(r.getVEgo() * speed_ratio * 3.6f + 0.5f);
+        int vcruise = (int)(r.getVCruise() + 0.5f);
 
         object.addProperty("active", active);
         object.addProperty("enabled", enabled);
         object.addProperty("vego", vego);
         object.addProperty("vcruise", vcruise);
-        object.addProperty("angle_steer_des", r.getAngleSteersDes());
+        object.addProperty("angle_steer_des", r.getAngleSteers());
         object.addProperty("alert_status", r.getAlertStatus().ordinal());
 
         if(r.hasAlertText1())

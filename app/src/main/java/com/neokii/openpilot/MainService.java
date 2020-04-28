@@ -14,7 +14,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.neokii.openpilot.bluetooth.BaseBluetooth;
 import com.neokii.openpilot.bluetooth.NavdyBT;
 import com.neokii.openpilot.poller.Poller;
@@ -42,8 +41,9 @@ public class MainService extends Service
 
     Sender[] senders = new Sender[] {
             new Sender("controlsState", 300),
-            new Sender("carControl", 300),
-            //new Sender("carState", 300),
+            //new Sender("carControl", 300),
+            new Sender("carState", -1),
+            new Sender("pathPlan", 300),
             new Sender("radarState", 300),
             new Sender("thermal", 2000),
     };
@@ -64,7 +64,8 @@ public class MainService extends Service
 
         public void start()
         {
-            scheduledFuture = service.scheduleWithFixedDelay(this, (long)(Math.random()*1000), period, TimeUnit.MILLISECONDS);
+            if(period > 0)
+                scheduledFuture = service.scheduleWithFixedDelay(this, (long)(Math.random()*1000), period, TimeUnit.MILLISECONDS);
 
             poller = new Poller(this);
             poller.start(endpoint);
@@ -78,12 +79,16 @@ public class MainService extends Service
                 {
                     poller.interrupt();
                     poller.join(1000);
+                    poller = null;
                 }
             }
             catch(Exception e){}
 
             if(scheduledFuture != null)
+            {
                 scheduledFuture.cancel(true);
+                scheduledFuture = null;
+            }
         }
 
         @Override
@@ -251,6 +256,11 @@ public class MainService extends Service
             Car.CarControl.Reader r = reader.getCarControl();
             json = carItem.getJson(r);
         }
+        else if(reader.hasPathPlan() && endpoint.equals("pathPlan"))
+        {
+            Log.PathPlan.Reader r = reader.getPathPlan();
+            json = carItem.getJson(r);
+        }
         else if(reader.hasRadarState() && endpoint.equals("radarState"))
         {
             Log.RadarState.Reader r = reader.getRadarState();
@@ -260,6 +270,21 @@ public class MainService extends Service
         {
             Log.ThermalData.Reader r = reader.getThermal();
             json = carItem.getJson(r);
+        }
+        else if(reader.hasCarState() && endpoint.equals("carState"))
+        {
+            Car.CarState.Reader r = reader.getCarState();
+            json = carItem.getJson(r);
+
+            if(!TextUtils.isEmpty(json))
+            {
+                Bundle bundle = new Bundle();
+                bundle.putString("type", endpoint);
+                bundle.putString("json", json);
+                NavdyBT.instance().sendBundle(bundle);
+            }
+
+            return;
         }
 
         if(!TextUtils.isEmpty(json))

@@ -10,5 +10,9 @@
     <string name="scan_complete_bluetooth">"Scan completed"</string>
 
     <string name="bt_not_enabled_leaving">"Bluetooth is not available."</string>
+    <string name="title_activity_settings">Settings</string>
+
+
+    <string name="settings_speed_ratio">"Adjust the speed displayed on the Navdy. (x0.8 ~ x1.3)"</string>
 
 </resources>
