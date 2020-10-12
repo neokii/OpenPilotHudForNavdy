@@ -3,8 +3,11 @@ package com.neokii.openpilot;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.neokii.openpilot.util.SettingUtil;
+
+import org.capnproto.PrimitiveList;
 
 import ai.comma.openpilot.cereal.Log;
 
@@ -14,6 +17,7 @@ public class CarItem
 
     private Gson gson = new Gson();
 
+    public int cpu_temp = -1;
     public int battery_temp = -1;
     public int thermal_status = 0;
 
@@ -39,6 +43,7 @@ public class CarItem
 
     public int path_lprob = -1;
     public int path_rprob = -1;
+    public int path_cprob = -1;
 
     public CarItem()
     {
@@ -47,6 +52,7 @@ public class CarItem
 
     public void init()
     {
+        cpu_temp = -1;
         battery_temp = -1;
         thermal_status = -1;
 
@@ -66,11 +72,23 @@ public class CarItem
         lead1_d_rel = -1;
 
         break_pressed = false;
+        path_lprob = -1;
+        path_rprob = -1;
+        path_cprob = -1;
 
         speed_ratio = SettingUtil.getFloat(MainApp.getAppContext(), "speed_ratio", 1.0f);
 
         if(speed_ratio < 0.5f || speed_ratio > 1.5f)
             speed_ratio = 1.0f;
+    }
+
+    private JsonArray getList(PrimitiveList.Float.Reader r)
+    {
+        JsonArray items = new JsonArray();
+        for(int i = 0; i < r.size(); i++)
+            items.add(r.get(i));
+
+        return items.size() > 0 ? items : null;
     }
 
     public String getJson(Log.PathPlan.Reader r)
@@ -87,6 +105,33 @@ public class CarItem
         {
             this.path_rprob = (int)(r.getRProb()*100);
             object.addProperty("path_rprob", this.path_rprob);
+        }
+
+        if(this.path_cprob != (int)(r.getCProb()*100))
+        {
+            this.path_cprob = (int)(r.getCProb()*100);
+            object.addProperty("path_cprob", this.path_cprob);
+        }
+
+        if(r.hasLPoly())
+        {
+            JsonArray items = getList(r.getLPoly());
+            if(items != null)
+                object.add("path_lpoly", items);
+        }
+
+        if(r.hasRPoly())
+        {
+            JsonArray items = getList(r.getRPoly());
+            if(items != null)
+                object.add("path_rpoly", items);
+        }
+
+        if(r.hasCPoly())
+        {
+            JsonArray items = getList(r.getCPoly());
+            if(items != null)
+                object.add("path_cpoly", items);
         }
 
         if(object.size() > 0)
@@ -116,9 +161,28 @@ public class CarItem
     {
         JsonObject object = new JsonObject();
 
-        if(this.battery_temp != r.getBat())
+        org.capnproto.PrimitiveList.Float.Reader cpus = r.getCpu();
+
+        float temp = 0;
+        if(cpus.size() > 0)
         {
-            this.battery_temp = r.getBat();
+            for(int i = 0; i < cpus.size(); i++)
+                temp += cpus.get(i);
+
+            temp /= cpus.size();
+        }
+
+        int cpuTemp = (int)(temp * 10.f);
+        if(this.cpu_temp != cpuTemp)
+        {
+            this.cpu_temp = cpuTemp;
+            object.addProperty("cpu_temp", this.cpu_temp);
+        }
+
+        int bat = (int)(r.getBat() * 1000.f);
+        if(this.battery_temp != bat)
+        {
+            this.battery_temp = bat;
             object.addProperty("battery_temp", this.battery_temp);
         }
 

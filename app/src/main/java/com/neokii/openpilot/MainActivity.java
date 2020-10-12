@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
     TextView textAddress, textTimer;
     Poller poller;
     Timer timer;
-    int timerCount = 30;
+    int timerCount = 20;
 
 
     @Override

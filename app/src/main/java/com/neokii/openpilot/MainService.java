@@ -237,7 +237,6 @@ public class MainService extends Service
         }
     }
 
-    private Gson gson = new Gson();
     private final Map<String, String> readerMap = new HashMap<>();
 
     CarItem carItem = new CarItem();
