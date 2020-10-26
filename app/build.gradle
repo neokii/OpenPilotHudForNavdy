@@ -8,8 +8,8 @@ android {
         applicationId "com.neokii.openpilot"
         minSdkVersion 23
         targetSdkVersion 23
-        versionCode 7901
-        versionName "0.7.9"
+        versionCode 7910
+        versionName "0.7.10"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
