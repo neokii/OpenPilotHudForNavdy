@@ -41,11 +41,11 @@ public class MainService extends Service
 
     Sender[] senders = new Sender[] {
             new Sender("controlsState", 300),
-            //new Sender("carControl", 300),
-            new Sender("carState", -1),
-            new Sender("pathPlan", 300),
+            new Sender("carControl", 300),
+            new Sender("carState", 250),
+            //new Sender("pathPlan", 300),
             new Sender("radarState", 300),
-            new Sender("thermal", 2000),
+            new Sender("deviceState", 3000),
     };
 
     class Sender implements Poller.OnReceiveListener, Runnable
@@ -173,9 +173,9 @@ public class MainService extends Service
 
         NavdyBT.instance().startServer();
 
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        //Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        //startActivity(intent);
     }
 
     @Override
@@ -216,9 +216,9 @@ public class MainService extends Service
 
             if(TextUtils.isEmpty(address))
             {
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                //Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                //startActivity(intent);
             }
             else
             {
@@ -255,19 +255,14 @@ public class MainService extends Service
             Car.CarControl.Reader r = reader.getCarControl();
             json = carItem.getJson(r);
         }
-        else if(reader.hasPathPlan() && endpoint.equals("pathPlan"))
-        {
-            Log.PathPlan.Reader r = reader.getPathPlan();
-            json = carItem.getJson(r);
-        }
         else if(reader.hasRadarState() && endpoint.equals("radarState"))
         {
             Log.RadarState.Reader r = reader.getRadarState();
             json = carItem.getJson(r);
         }
-        else if(reader.hasThermal() && endpoint.equals("thermal"))
+        else if(reader.hasDeviceState() && endpoint.equals("deviceState"))
         {
-            Log.ThermalData.Reader r = reader.getThermal();
+            Log.DeviceState.Reader r = reader.getDeviceState();
             json = carItem.getJson(r);
         }
         else if(reader.hasCarState() && endpoint.equals("carState"))

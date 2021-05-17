@@ -143,17 +143,7 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
 
         NavdyBT.instance().addStateChangedListener(this);
 
-        /*poller = new Poller(new Poller.OnReceiveListener()
-        {
-            @Override
-            public void onReceived(String endpoint, Log.Event.Reader reader)
-            {
-            }
-        });
-
-        poller.start("controlsState");*/
-
-        timer = new Timer();
+        /*timer = new Timer();
         timer.schedule(new TimerTask()
         {
             @Override
@@ -173,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements BaseBluetooth.OnS
                     }
                 });
             }
-        }, 1000, 1000);
+        }, 1000, 1000);*/
     }
 
     private void removeBond(BluetoothDevice device)

@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion 29
+    buildToolsVersion '29.0.3'
 
     defaultConfig {
         applicationId "com.neokii.openpilot"
         minSdkVersion 23
         targetSdkVersion 23
-        versionCode 7910
-        versionName "0.7.10"
+        versionCode 8400
+        versionName "0.8.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -23,7 +23,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -44,11 +44,11 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
     implementation 'org.capnproto:runtime:0.1.1'
 
-    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.google.code.gson:gson:2.8.6'
 
     implementation 'com.hariofspades.IncDec:incdeclibrary:0.0.5'
     implementation project(path: ':messaging')

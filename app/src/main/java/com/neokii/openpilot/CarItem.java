@@ -40,6 +40,8 @@ public class CarItem
     public int lead1_d_rel = -1;
 
     public boolean break_pressed;
+    public boolean leftBlindspot;
+    public boolean rightBlindspot;
 
     public int path_lprob = -1;
     public int path_rprob = -1;
@@ -72,6 +74,8 @@ public class CarItem
         lead1_d_rel = -1;
 
         break_pressed = false;
+        leftBlindspot = false;
+        rightBlindspot = false;
         path_lprob = -1;
         path_rprob = -1;
         path_cprob = -1;
@@ -91,59 +95,17 @@ public class CarItem
         return items.size() > 0 ? items : null;
     }
 
-    public String getJson(Log.PathPlan.Reader r)
-    {
-        JsonObject object = new JsonObject();
-
-        if(this.path_lprob != (int)(r.getLProb()*100))
-        {
-            this.path_lprob = (int)(r.getLProb()*100);
-            object.addProperty("path_lprob", this.path_lprob);
-        }
-
-        if(this.path_rprob != (int)(r.getRProb()*100))
-        {
-            this.path_rprob = (int)(r.getRProb()*100);
-            object.addProperty("path_rprob", this.path_rprob);
-        }
-
-        if(this.path_cprob != (int)(r.getCProb()*100))
-        {
-            this.path_cprob = (int)(r.getCProb()*100);
-            object.addProperty("path_cprob", this.path_cprob);
-        }
-
-        if(r.hasLPoly())
-        {
-            JsonArray items = getList(r.getLPoly());
-            if(items != null)
-                object.add("path_lpoly", items);
-        }
-
-        if(r.hasRPoly())
-        {
-            JsonArray items = getList(r.getRPoly());
-            if(items != null)
-                object.add("path_rpoly", items);
-        }
-
-        if(r.hasCPoly())
-        {
-            JsonArray items = getList(r.getCPoly());
-            if(items != null)
-                object.add("path_cpoly", items);
-        }
-
-        if(object.size() > 0)
-            return gson.toJson(object);
-
-        return null;
-    }
-
     // Car.CarState.Reader
     public String getJson(ai.comma.openpilot.cereal.Car.CarState.Reader r)
     {
         JsonObject object = new JsonObject();
+
+        int vego = (int)(r.getVEgo() * speed_ratio * 3.6f + 0.5f);
+        if(this.vego != vego)
+        {
+            this.vego = vego;
+            object.addProperty("vego", vego);
+        }
 
         if(this.break_pressed != r.getBrakeLights())
         {
@@ -151,17 +113,29 @@ public class CarItem
             object.addProperty("break_pressed", this.break_pressed);
         }
 
+        if(this.leftBlindspot != r.getLeftBlindspot())
+        {
+            this.leftBlindspot = r.getLeftBlindspot();
+            object.addProperty("leftBlindspot", this.leftBlindspot);
+        }
+
+        if(this.rightBlindspot != r.getRightBlindspot())
+        {
+            this.rightBlindspot = r.getRightBlindspot();
+            object.addProperty("rightBlindspot", this.rightBlindspot);
+        }
+
         if(object.size() > 0)
             return gson.toJson(object);
 
         return null;
     }
 
-    public String getJson(ai.comma.openpilot.cereal.Log.ThermalData.Reader r)
+    public String getJson(Log.DeviceState.Reader r)
     {
         JsonObject object = new JsonObject();
 
-        org.capnproto.PrimitiveList.Float.Reader cpus = r.getCpu();
+        org.capnproto.PrimitiveList.Float.Reader cpus = r.getCpuTempC();
 
         float temp = 0;
         if(cpus.size() > 0)
@@ -179,7 +153,7 @@ public class CarItem
             object.addProperty("cpu_temp", this.cpu_temp);
         }
 
-        int bat = (int)(r.getBat() * 1000.f);
+        int bat = (int)(r.getBatteryTempC() * 1000.f);
         if(this.battery_temp != bat)
         {
             this.battery_temp = bat;
@@ -206,14 +180,14 @@ public class CarItem
 
         boolean active = r.getActive();
         boolean enabled = r.getEnabled();
-        int vego = (int)(r.getVEgo() * speed_ratio * 3.6f + 0.5f);
         int vcruise = (int)(r.getVCruise() + 0.5f);
+        Log.ControlsState.LongControlState longControlState = r.getLongControlState();
 
+        object.addProperty("long_control_state", longControlState.ordinal());
         object.addProperty("active", active);
         object.addProperty("enabled", enabled);
-        object.addProperty("vego", vego);
         object.addProperty("vcruise", vcruise);
-        object.addProperty("angle_steer_des", r.getAngleSteers());
+        //object.addProperty("angle_steer_des", r.getAngleSteers());
         object.addProperty("alert_status", r.getAlertStatus().ordinal());
 
         if(r.hasAlertText1())

@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.neokii.openpilot",
+  "variantName": "processReleaseResources",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "versionCode": 8400,
+      "versionName": "0.8.4",
+      "outputFile": "com.neokii.openpilot-0.8.4.apk"
+    }
+  ]
+}
